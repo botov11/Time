@@ -1,0 +1,167 @@
+23  .gitignore
+ @@ -8,25 +8,32 @@ src/bitcoin-tx
+  src/test/test_bitcoin
+  src/qt/test/test_bitcoin-qt
+  
+ +# autoreconf
+  Makefile.in
+  aclocal.m4
+  autom4te.cache/
+ +build-aux/config.guess
+ +build-aux/config.sub
+ +build-aux/depcomp
+ +build-aux/install-sh
+ +build-aux/ltmain.sh
+ +build-aux/m4/libtool.m4
+ +build-aux/m4/lt~obsolete.m4
+ +build-aux/m4/ltoptions.m4
+ +build-aux/m4/ltsugar.m4
+ +build-aux/m4/ltversion.m4
+ +build-aux/missing
+ +build-aux/compile
+ +build-aux/test-driver
+  config.log
+  config.status
+  configure
+ +libtool
+  src/config/bitcoin-config.h
+  src/config/bitcoin-config.h.in
+  src/config/stamp-h1
+ -src/build-aux/
+  share/setup.nsi
+  share/qt/Info.plist
+ -# Libtool
+ -libtool
+ -src/m4/libtool.m4
+ -src/m4/ltoptions.m4
+ -src/m4/ltsugar.m4
+ -src/m4/ltversion.m4
+ -src/m4/lt~obsolete.m4
+  
+  src/univalue/gen
+  
+View
+2  Makefile.am
+@@ -1,4 +1,4 @@
+ -ACLOCAL_AMFLAGS = -I src/m4
+ +ACLOCAL_AMFLAGS = -I build-aux/m4
+  SUBDIRS = src
+  .PHONY: deploy FORCE
+  
+View
+0  src/m4/ax_boost_base.m4 → build-aux/m4/ax_boost_base.m4
+File renamed without changes.
+View
+0  src/m4/ax_boost_chrono.m4 → build-aux/m4/ax_boost_chrono.m4
+File renamed without changes.
+View
+0  src/m4/ax_boost_filesystem.m4 → build-aux/m4/ax_boost_filesystem.m4
+File renamed without changes.
+View
+0  src/m4/ax_boost_program_options.m4 → build-aux/m4/ax_boost_program_options.m4
+File renamed without changes.
+View
+0  src/m4/ax_boost_system.m4 → build-aux/m4/ax_boost_system.m4
+File renamed without changes.
+View
+0  src/m4/ax_boost_thread.m4 → build-aux/m4/ax_boost_thread.m4
+File renamed without changes.
+View
+0  src/m4/ax_boost_unit_test_framework.m4 → build-aux/m4/ax_boost_unit_test_framework.m4
+File renamed without changes.
+View
+0  src/m4/ax_check_compile_flag.m4 → build-aux/m4/ax_check_compile_flag.m4
+File renamed without changes.
+View
+0  src/m4/ax_check_link_flag.m4 → build-aux/m4/ax_check_link_flag.m4
+File renamed without changes.
+View
+0  src/m4/ax_check_preproc_flag.m4 → build-aux/m4/ax_check_preproc_flag.m4
+File renamed without changes.
+View
+0  src/m4/ax_pthread.m4 → build-aux/m4/ax_pthread.m4
+File renamed without changes.
+View
+0  src/m4/bitcoin_find_bdb48.m4 → build-aux/m4/bitcoin_find_bdb48.m4
+File renamed without changes.
+View
+0  src/m4/bitcoin_qt.m4 → build-aux/m4/bitcoin_qt.m4
+File renamed without changes.
+View
+0  src/m4/bitcoin_subdir_to_include.m4 → build-aux/m4/bitcoin_subdir_to_include.m4
+File renamed without changes.
+View
+52  configure.ac
+ @@ -7,8 +7,8 @@ define(_CLIENT_VERSION_BUILD, 0)
+  define(_CLIENT_VERSION_IS_RELEASE, false)
+  define(_COPYRIGHT_YEAR, 2014)
+  AC_INIT([Bitcoin Core],[_CLIENT_VERSION_MAJOR._CLIENT_VERSION_MINOR._CLIENT_VERSION_REVISION],[info@bitcoin.org],[bitcoin])
+ -AC_CONFIG_AUX_DIR([src/build-aux])
+ -AC_CONFIG_MACRO_DIR([src/m4])
+ +AC_CONFIG_AUX_DIR([build-aux])
+ +AC_CONFIG_MACRO_DIR([build-aux/m4])
+  LT_INIT([disable-shared])
+  AC_CANONICAL_HOST
+  AH_TOP([#ifndef BITCOIN_CONFIG_H])
+ @@ -44,6 +44,30 @@ AM_MAINTAINER_MODE([enable])
+  dnl make the compilation flags quiet unless V=1 is used
+  m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
+  
+ +dnl Checks for programs.
+ +AC_PROG_CXX
+ +AC_PROG_CC
+ +AC_PROG_CPP
+ +AC_PROG_CXXCPP
+ +AC_PROG_INSTALL
+ +AC_PROG_OBJC
+ +AC_PROG_LN_S
+ +m4_ifdef([AC_PROG_OBJCXX],[AC_PROG_OBJCXX])
+ +AC_PROG_MKDIR_P
+ +AC_PROG_SED
+ +AC_PATH_TOOL(AR, ar)
+ +AC_PATH_TOOL(RANLIB, ranlib)
+ +AC_PATH_TOOL(STRIP, strip)
+ +AC_PATH_TOOL(GCOV, gcov)
+ +AC_PATH_PROG(LCOV, lcov)
+ +AC_PATH_PROG(JAVA, java)
+ +AC_PATH_PROG(GENHTML, genhtml)
+ +AC_PATH_PROG([GIT], [git])
+ +AC_PATH_PROG(CCACHE,ccache)
+ +AC_PATH_PROG(XGETTEXT,xgettext)
+ +AC_PATH_PROG(HEXDUMP,hexdump)
+ +PKG_PROG_PKG_CONFIG
+ +
+  # Enable wallet
+  AC_ARG_ENABLE([wallet],
+    [AS_HELP_STRING([--enable-wallet],
+ @@ -120,30 +144,6 @@ AC_ARG_WITH([protoc-bindir],[AS_HELP_STRING([--with-protoc-bindir=BIN_DIR],[spec
+  AC_CONFIG_SRCDIR([src])
+  AC_CONFIG_HEADERS([src/config/bitcoin-config.h])
+  
+ -dnl Checks for programs.
+ -AC_PROG_CXX
+ -AC_PROG_CC
+ -AC_PROG_CPP
+ -AC_PROG_CXXCPP
+ -AC_PROG_INSTALL
+ -AC_PROG_OBJC
+ -AC_PROG_LN_S
+ -m4_ifdef([AC_PROG_OBJCXX],[AC_PROG_OBJCXX])
+ -AC_PROG_MKDIR_P
+ -AC_PROG_SED
+ -AC_PATH_TOOL(AR, ar)
+ -AC_PATH_TOOL(RANLIB, ranlib)
+ -AC_PATH_TOOL(STRIP, strip)
+ -AC_PATH_TOOL(GCOV, gcov)
+ -AC_PATH_PROG(LCOV, lcov)
+ -AC_PATH_PROG(JAVA, java)
+ -AC_PATH_PROG(GENHTML, genhtml)
+ -AC_PATH_PROG([GIT], [git])
+ -AC_PATH_PROG(CCACHE,ccache)
+ -AC_PATH_PROG(XGETTEXT,xgettext)
+ -AC_PATH_PROG(HEXDUMP,hexdump)
+ -PKG_PROG_PKG_CONFIG
+ -
+  # Enable debug 
+  AC_ARG_ENABLE([debug],
+      [AS_HELP_STRING([--enable-debug],
